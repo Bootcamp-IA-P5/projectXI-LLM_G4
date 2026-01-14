@@ -1,6 +1,11 @@
 # Virtual environments (Never commit)
 venv/
 env/
+.env
+*.env
+.env.local
+.env.production
+.env.development
 
 # Compiled Python files (auto-generated)
 __pycache__/
