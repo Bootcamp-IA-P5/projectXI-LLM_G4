@@ -118,7 +118,7 @@ La aplicación estará disponible en `http://localhost:8501`
 ```bash
 # Configuración de Groq (Requerido)
 GROQ_API_KEY=tu_api_key
-GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_MODEL=llama-3.3-8b-versatile
 MODEL_TEMPERATURE=0.7
 
 # System Prompt personalizado (Opcional)
