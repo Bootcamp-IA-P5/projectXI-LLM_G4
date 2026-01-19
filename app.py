@@ -168,13 +168,13 @@ with tabs[1]:
         else:
             with st.spinner("Generating content…"):
                 try:
-                    output = generate_content(generate_content(
-                    topic=topic,
-                    platform=platform,
-                    audience=audience,
-                    tone=tone,
-                    user_profile=st.session_state.get("user_profile", {})
-                    ))
+                    output = generate_content(
+                        topic=topic,
+                        platform=platform,
+                        audience=audience,
+                        tone=tone,
+                        user_profile=st.session_state.get("user_profile", {})
+                    )
                     st.markdown("---")
                     st.markdown(output)
                 except Exception as e:

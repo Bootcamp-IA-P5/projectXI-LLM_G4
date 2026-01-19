@@ -71,12 +71,63 @@ chain = prompt | llm
 
 # 6. Content Generation Function
 # A simple function to take the user inputs and run the chain.
-def generate_content(topic: str, platform: str, audience: str, tone: str) -> str:
+def generate_content(topic: str, platform: str, audience: str, tone: str, user_profile: dict = None) -> str:
     """
     Generates content by invoking the LangChain chain with user inputs.
+    
+    Args:
+        topic: The topic for the content
+        platform: Target platform (Blog Post, Twitter/X, etc.)
+        audience: Target audience
+        tone: Desired tone for the content
+        user_profile: Optional dictionary with user/company profile information
     """
+    # Build the base prompt template
+    base_template = """
+You are an expert digital content creator specializing in marketing and SEO.
+Your task is to generate compelling, ready-to-publish content.
+
+**Instructions:**
+- **Topic:** {topic}
+- **Platform:** {platform}
+- **Audience:** {audience}
+- **Tone:** {tone}
+- **Length:** Generate content that is appropriate for the selected platform.
+
+**Specific Platform Guidelines:**
+- **Blog Post:** Use Markdown for formatting (headings, bolding, lists). Write a detailed introduction and several main points.
+- **Twitter/X:** Use concise language, strong hooks, and relevant hashtags (max 280 characters).
+- **Instagram Caption:** Use a short, engaging description and a few popular hashtags.
+- **LinkedIn Post:** Write a professional post focused on insights or career advice.
+"""
+    
+    # Add user profile section if profile exists and has data
+    profile_section = ""
+    if user_profile and any(user_profile.values()):
+        profile_parts = []
+        if user_profile.get("name"):
+            profile_parts.append(f"- **Name:** {user_profile['name']}")
+        if user_profile.get("industry"):
+            profile_parts.append(f"- **Industry:** {user_profile['industry']}")
+        if user_profile.get("tone"):
+            profile_parts.append(f"- **Voice/Tone:** {user_profile['tone']}")
+        if user_profile.get("values"):
+            profile_parts.append(f"- **Values:** {user_profile['values']}")
+        
+        if profile_parts:
+            profile_section = "\n**Company/Personal Profile:**\n" + "\n".join(profile_parts) + "\n"
+    
+    # Combine base template with profile section
+    prompt_template = base_template + profile_section + "\n**GENERATE CONTENT BELOW:**\n"
+    
+    # Create the prompt template dynamically
+    prompt = ChatPromptTemplate.from_template(prompt_template)
+    
+    # Recreate the chain with the new prompt
+    dynamic_chain = prompt | llm
+    
     # The .invoke method executes the chain with the provided variables.
-    response = chain.invoke({
+    response = dynamic_chain.invoke({
         "topic": topic,
         "platform": platform,
         "audience": audience,
