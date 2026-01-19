@@ -22,11 +22,10 @@ Este proyecto es una aplicación web que permite generar contenido de texto opti
 - ✅ Dockerización completa
 
 ### 🚧 En desarrollo
-- 🔄 Generación de imágenes con IA
-- 🔄 Soporte multiidioma (ES, EN, FR, IT)
+- 🔄 Trazabilidad con LangSmith (configuración pendiente)
 - 🔄 RAG científico con arXiv
 - 🔄 Sistema multiagente
-- 🔄 Trazabilidad con LangSmith
+- 🔄 Noticias financieras con APIs
 
 ## 🛠️ Tecnologías
 
@@ -164,9 +163,13 @@ SYSTEM_PROMPT=You are a helpful assistant
 # UNSPLASH_ACCESS_KEY=your_unsplash_access_key_here
 
 # ======================================
-# APIs adicionales (Futuras implementaciones)
+# LangSmith Tracing (Optional)
 # ======================================
-# LANGCHAIN_API_KEY=...
+# Get your API key at: https://smith.langchain.com/
+# Free tier available for development
+# LANGCHAIN_TRACING_V2=true
+# LANGCHAIN_API_KEY=your_langsmith_api_key_here
+# LANGCHAIN_PROJECT=content-generator
 ```
 
 ## 📁 Estructura del Proyecto
