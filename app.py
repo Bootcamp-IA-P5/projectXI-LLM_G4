@@ -1,4 +1,21 @@
 import os
+import sys
+import locale
+
+# Fix UTF-8 encoding issues - Must be at the very top
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+# Set locale to UTF-8
+try:
+    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+except:
+    try:
+        locale.setlocale(locale.LC_ALL, 'C.UTF-8')
+    except:
+        pass
+
 from dotenv import load_dotenv
 import streamlit as st
 
@@ -10,7 +27,8 @@ from content_generator import generate_content
 
 
 # ---------- Setup ----------
-load_dotenv()
+# Load environment variables with UTF-8 encoding
+load_dotenv(encoding='utf-8')
 st.set_page_config(page_title="LLM Content Generator & Chat", layout="centered")
 
 

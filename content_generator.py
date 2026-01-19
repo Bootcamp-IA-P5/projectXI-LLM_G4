@@ -1,20 +1,37 @@
 # Import necessary modules
 import os
+import sys
+import locale
+import io
+
+# Fix UTF-8 encoding issues - Must be at the very top
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+# Set locale to UTF-8
+try:
+    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+except:
+    try:
+        locale.setlocale(locale.LC_ALL, 'C.UTF-8')
+    except:
+        pass
+
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 
 
 # 1. Load Environment Variables
-# This loads the OPENAI_API_KEY from the .env file
-load_dotenv()
+# This loads the GROQ_API_KEY from the .env file with UTF-8 encoding
+load_dotenv(encoding='utf-8')
 
 # 2. Define the LLM Model
 # Initializes the connection to the Groq API
 # temperature=0.7 allows for creative but still coherent responses
 # The model can be changed to any other supported LLM
 llm = ChatGroq(
-    model="llama-3.3-70b-versatile",
+    model="llama-3.3-8b-versatile",
     temperature=0.7
 )
 
