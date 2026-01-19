@@ -222,6 +222,12 @@ with tabs[1]:
         )
         audience = st.text_input("Audience", placeholder="e.g., School Administrators and Educators")
         tone = st.selectbox("Tone", ["Informative", "Professional", "Friendly", "Playful", "Persuasive"], index=0)
+        language = st.selectbox(
+            "Language",
+            ["Spanish", "English", "French", "Italian"],
+            index=0,
+            help="Select the language for content generation"
+        )
         submitted = st.form_submit_button("Generate")
 
     if submitted:
@@ -230,13 +236,14 @@ with tabs[1]:
         elif not ensure_api_key(st.session_state.llm_provider):
             pass
         else:
-            with st.spinner(f"Generating content with {st.session_state.llm_provider.upper()}…"):
+            with st.spinner(f"Generating content in {language} with {st.session_state.llm_provider.upper()}…"):
                 try:
                     output = generate_content(
                         topic=topic,
                         platform=platform,
                         audience=audience,
                         tone=tone,
+                        language=language,
                         user_profile=st.session_state.get("user_profile", {}),
                         provider=st.session_state.llm_provider,
                         model=st.session_state.llm_model,

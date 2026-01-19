@@ -58,7 +58,8 @@ def generate_content(
     topic: str, 
     platform: str, 
     audience: str, 
-    tone: str, 
+    tone: str,
+    language: str = "Spanish",
     user_profile: dict = None,
     provider: str = "groq",
     model: str = "llama-3.1-8b-instant",
@@ -72,6 +73,7 @@ def generate_content(
         platform: Target platform (Blog Post, Twitter/X, etc.)
         audience: Target audience
         tone: Desired tone for the content
+        language: Language for content generation ("Spanish", "English", "French", "Italian")
         user_profile: Optional dictionary with user/company profile information
         provider: LLM provider ("groq", "openai", "ollama")
         model: Model name for the selected provider
@@ -79,16 +81,28 @@ def generate_content(
     """
     # Create LLM instance based on provider
     llm = get_llm(provider, model, temperature)
+    # Map language names to language codes for the prompt
+    language_map = {
+        "Spanish": "Spanish (Español)",
+        "English": "English",
+        "French": "French (Français)",
+        "Italian": "Italian (Italiano)"
+    }
+    language_display = language_map.get(language, language)
+    
     # Build the base prompt template
-    base_template = """
+    base_template = f"""
 You are an expert digital content creator specializing in marketing and SEO.
 Your task is to generate compelling, ready-to-publish content.
 
+**IMPORTANT: Generate all content in {language_display}. Write naturally and fluently in this language.**
+
 **Instructions:**
-- **Topic:** {topic}
-- **Platform:** {platform}
-- **Audience:** {audience}
-- **Tone:** {tone}
+- **Topic:** {{topic}}
+- **Platform:** {{platform}}
+- **Audience:** {{audience}}
+- **Tone:** {{tone}}
+- **Language:** {language_display}
 - **Length:** Generate content that is appropriate for the selected platform.
 
 **Specific Platform Guidelines:**
@@ -96,6 +110,12 @@ Your task is to generate compelling, ready-to-publish content.
 - **Twitter/X:** Use concise language, strong hooks, and relevant hashtags (max 280 characters).
 - **Instagram Caption:** Use a short, engaging description and a few popular hashtags.
 - **LinkedIn Post:** Write a professional post focused on insights or career advice.
+
+**Language Requirements:**
+- All content must be written in {language_display}
+- Use natural, fluent expressions in the target language
+- Adapt cultural references and idioms appropriately
+- Ensure proper grammar and spelling for {language_display}
 """
     
     # Add user profile section if profile exists and has data
