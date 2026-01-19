@@ -152,7 +152,7 @@ with st.sidebar:
 
 # ---------- UI ----------
 st.title("🧠 LLM Content Generator & Chat")
-tabs = st.tabs(["Chat", "Content Generator"])
+tabs = st.tabs(["Chat", "Content Generator", "RAG - Scientific Content"])
 
 
 # ---------- Chat Tab ----------
@@ -270,3 +270,125 @@ with tabs[1]:
                     
                 except Exception as e:
                     st.error(f"Generation failed: {e}")
+
+
+# ---------- RAG Tab ----------
+with tabs[2]:
+    st.subheader("🔬 Scientific Content Generator (RAG)")
+    st.caption("Generate science content based on your indexed documents (PDF/TXT from data/raw).")
+    
+    # Import RAG modules
+    try:
+        from rag.database import ingest_to_vectorstore, load_vectorstore
+        from rag.retrieval import query_rag, get_retriever
+        rag_available = True
+    except ImportError as e:
+        st.error(f"RAG modules not available: {e}")
+        st.info("Make sure you have installed: `pip install langchain-community chromadb sentence-transformers`")
+        rag_available = False
+    
+    if rag_available:
+        # Initialize RAG state
+        if "vectorstore" not in st.session_state:
+            st.session_state.vectorstore = None
+        if "rag_indexed" not in st.session_state:
+            st.session_state.rag_indexed = False
+        
+        # Section 1: Index Documents
+        with st.expander("📚 Index Documents", expanded=not st.session_state.rag_indexed):
+            st.markdown("Index PDF and TXT files from `data/raw` folder.")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                chunk_size = st.number_input("Chunk size", min_value=100, max_value=4000, value=1000, step=100)
+            with col2:
+                chunk_overlap = st.number_input("Chunk overlap", min_value=0, max_value=500, value=200, step=50)
+            
+            if st.button("🔄 Index Documents", type="primary"):
+                with st.spinner("Loading and indexing documents..."):
+                    try:
+                        vectorstore = ingest_to_vectorstore(
+                            source_path="data/raw",
+                            persist_directory="chroma_db",
+                            collection_name="papers",
+                            chunk_size=chunk_size,
+                            chunk_overlap=chunk_overlap,
+                        )
+                        st.session_state.vectorstore = vectorstore
+                        st.session_state.rag_indexed = True
+                        st.success("✅ Documents indexed successfully!")
+                    except FileNotFoundError:
+                        st.warning("No PDF or TXT files found in `data/raw`. Add documents and try again.")
+                    except Exception as e:
+                        st.error(f"Indexing failed: {e}")
+            
+            # Option to load existing vectorstore
+            if st.button("📂 Load Existing Index"):
+                try:
+                    vectorstore = load_vectorstore(
+                        persist_directory="chroma_db",
+                        collection_name="papers"
+                    )
+                    st.session_state.vectorstore = vectorstore
+                    st.session_state.rag_indexed = True
+                    st.success("✅ Loaded existing index from chroma_db")
+                except Exception as e:
+                    st.error(f"Could not load index: {e}")
+        
+        # Section 2: Query RAG
+        st.markdown("---")
+        st.markdown("### 🔍 Ask Questions")
+        
+        if not st.session_state.rag_indexed:
+            st.info("👆 First, index your documents or load an existing index.")
+        else:
+            # Query form
+            query = st.text_area(
+                "Your question",
+                placeholder="e.g., What are the main impacts of AI on the economy?",
+                height=100
+            )
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                num_sources = st.slider("Number of sources to retrieve", min_value=1, max_value=10, value=4)
+            with col2:
+                use_llm = st.checkbox("Generate synthesized answer", value=True)
+            
+            if st.button("🚀 Search & Generate", type="primary"):
+                if not query.strip():
+                    st.warning("Please enter a question.")
+                else:
+                    with st.spinner("Searching documents and generating answer..."):
+                        try:
+                            # Get LLM if needed
+                            llm = None
+                            if use_llm and ensure_api_key(st.session_state.llm_provider):
+                                llm = get_cached_llm(
+                                    st.session_state.llm_provider,
+                                    st.session_state.llm_model,
+                                    st.session_state.llm_temperature
+                                )
+                            
+                            # Query RAG
+                            result = query_rag(
+                                query=query,
+                                vectorstore=st.session_state.vectorstore,
+                                llm=llm,
+                                k=num_sources
+                            )
+                            
+                            # Display answer
+                            if "answer" in result:
+                                st.markdown("### 💡 Answer")
+                                st.markdown(result["answer"])
+                            
+                            # Display sources
+                            st.markdown("### 📄 Sources")
+                            for i, source in enumerate(result["sources"], 1):
+                                with st.expander(f"Source {i}: {source['metadata'].get('filename', 'Unknown')}"):
+                                    st.markdown(f"**Chunk {source['metadata'].get('chunk_index', '?')}**")
+                                    st.markdown(source["content"][:500] + "..." if len(source["content"]) > 500 else source["content"])
+                        
+                        except Exception as e:
+                            st.error(f"Query failed: {e}")
