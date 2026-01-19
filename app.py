@@ -2,7 +2,7 @@ import os
 import sys
 import locale
 
-# Fix UTF-8 encoding issues - Must be at the very top
+
 import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
@@ -36,7 +36,7 @@ st.set_page_config(page_title="LLM Content Generator & Chat", layout="centered")
 def get_llm():
     """Create and cache the chat model once per session."""
     # Prefer the larger, more capable model if available
-    model_name = os.getenv("GROQ_MODEL", "llama-3.3-8b-versatile")
+    model_name = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
     temperature = float(os.getenv("MODEL_TEMPERATURE", "0.3"))
     return ChatGroq(model=model_name, temperature=temperature)
 

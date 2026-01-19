@@ -31,7 +31,7 @@ load_dotenv(encoding='utf-8')
 # temperature=0.7 allows for creative but still coherent responses
 # The model can be changed to any other supported LLM
 llm = ChatGroq(
-    model="llama-3.3-8b-versatile",
+    model="llama-3.1-8b-instant",
     temperature=0.7
 )
 
