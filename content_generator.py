@@ -2,12 +2,8 @@
 import os
 import sys
 import locale
-import io
 
-# Fix UTF-8 encoding issues - Must be at the very top
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
-
+# Fix UTF-8 encoding issues - Streamlit compatible approach
 # Set locale to UTF-8
 try:
     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
@@ -17,25 +13,22 @@ except:
     except:
         pass
 
+# Set UTF-8 encoding in environment
+os.environ['PYTHONIOENCODING'] = 'utf-8'
+
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
+from llm_factory import get_llm
 
 
 # 1. Load Environment Variables
-# This loads the GROQ_API_KEY from the .env file with UTF-8 encoding
+# This loads the API keys from the .env file with UTF-8 encoding
 load_dotenv(encoding='utf-8')
 
-# 2. Define the LLM Model
-# Initializes the connection to the Groq API
-# temperature=0.7 allows for creative but still coherent responses
-# The model can be changed to any other supported LLM
-llm = ChatGroq(
-    model="llama-3.1-8b-instant",
-    temperature=0.7
-)
+# Note: LLM is now created dynamically using llm_factory based on provider selection
+# The LLM instance is created in generate_content() function
 
-# 3. Define the Prompt Template
+# 2. Define the Prompt Template
 # This is the "Prompt Engineering" step. The template structures the input
 # for the model, telling it what its role is and what to focus on.
 # It uses f-string-style placeholders (like {topic}) that LangChain fills in.
@@ -59,19 +52,18 @@ Your task is to generate compelling, ready-to-publish content.
 **GENERATE CONTENT BELOW:**
 """
 
-# 4. Create the ChatPromptTemplate object
-# This takes the string and defines the expected input variables.
-prompt = ChatPromptTemplate.from_template(prompt_template)
-
-# 5. Create the Chain using LCEL (LangChain Expression Language)
-# Modern LangChain uses the pipe operator (|) to chain components.
-# This creates: Prompt -> LLM pipeline
-chain = prompt | llm
-
-
 # 6. Content Generation Function
 # A simple function to take the user inputs and run the chain.
-def generate_content(topic: str, platform: str, audience: str, tone: str, user_profile: dict = None) -> str:
+def generate_content(
+    topic: str, 
+    platform: str, 
+    audience: str, 
+    tone: str, 
+    user_profile: dict = None,
+    provider: str = "groq",
+    model: str = "llama-3.1-8b-instant",
+    temperature: float = 0.7
+) -> str:
     """
     Generates content by invoking the LangChain chain with user inputs.
     
@@ -81,7 +73,12 @@ def generate_content(topic: str, platform: str, audience: str, tone: str, user_p
         audience: Target audience
         tone: Desired tone for the content
         user_profile: Optional dictionary with user/company profile information
+        provider: LLM provider ("groq", "openai", "ollama")
+        model: Model name for the selected provider
+        temperature: Temperature for generation (0.0-1.0)
     """
+    # Create LLM instance based on provider
+    llm = get_llm(provider, model, temperature)
     # Build the base prompt template
     base_template = """
 You are an expert digital content creator specializing in marketing and SEO.
@@ -123,7 +120,7 @@ Your task is to generate compelling, ready-to-publish content.
     # Create the prompt template dynamically
     prompt = ChatPromptTemplate.from_template(prompt_template)
     
-    # Recreate the chain with the new prompt
+    # Create the chain with the LLM instance
     dynamic_chain = prompt | llm
     
     # The .invoke method executes the chain with the provided variables.

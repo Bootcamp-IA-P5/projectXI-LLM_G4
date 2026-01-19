@@ -2,12 +2,9 @@ import os
 import sys
 import locale
 
-
-import io
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
-
-# Set locale to UTF-8
+# Fix UTF-8 encoding issues - Streamlit compatible approach
+# Don't reconfigure sys.stdout/stderr as Streamlit manages them
+# Instead, set environment variables and locale
 try:
     locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 except:
@@ -16,13 +13,16 @@ except:
     except:
         pass
 
+# Set UTF-8 encoding in environment
+os.environ['PYTHONIOENCODING'] = 'utf-8'
+
 from dotenv import load_dotenv
 import streamlit as st
 
-from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
-# Use the content generator pipeline for the second tab
+# Import LLM factory and content generator
+from llm_factory import get_llm, get_available_models, validate_provider_config
 from content_generator import generate_content
 
 
@@ -32,18 +32,26 @@ load_dotenv(encoding='utf-8')
 st.set_page_config(page_title="LLM Content Generator & Chat", layout="centered")
 
 
+# Initialize LLM provider selection in session state
+if "llm_provider" not in st.session_state:
+    st.session_state.llm_provider = "groq"
+if "llm_model" not in st.session_state:
+    st.session_state.llm_model = "llama-3.1-8b-instant"
+if "llm_temperature" not in st.session_state:
+    st.session_state.llm_temperature = 0.7
+
+
 @st.cache_resource(show_spinner=False)
-def get_llm():
+def get_cached_llm(provider, model, temperature):
     """Create and cache the chat model once per session."""
-    # Prefer the larger, more capable model if available
-    model_name = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
-    temperature = float(os.getenv("MODEL_TEMPERATURE", "0.3"))
-    return ChatGroq(model=model_name, temperature=temperature)
+    return get_llm(provider, model, temperature)
 
 
-def ensure_api_key():
-    if not os.getenv("GROQ_API_KEY"):
-        st.error("GROQ_API_KEY is missing. Add it to your .env file.")
+def ensure_api_key(provider):
+    """Check if API key exists for the selected provider."""
+    is_valid, error_msg = validate_provider_config(provider)
+    if not is_valid:
+        st.error(f"{error_msg}")
         return False
     return True
 
@@ -57,6 +65,53 @@ if "user_profile" not in st.session_state:
     }
 
 with st.sidebar:
+    st.header("⚙️ Configuration")
+    
+    # LLM Provider Selection
+    with st.expander("🤖 LLM Provider", expanded=True):
+        provider = st.selectbox(
+            "Select LLM Provider",
+            ["groq", "openai", "ollama"],
+            index=0 if st.session_state.llm_provider == "groq" else (1 if st.session_state.llm_provider == "openai" else 2),
+            help="Choose the LLM provider for content generation"
+        )
+        
+        # Get available models for selected provider
+        available_models = get_available_models(provider)
+        default_model_index = 0
+        if st.session_state.llm_model in available_models:
+            default_model_index = available_models.index(st.session_state.llm_model)
+        
+        model = st.selectbox(
+            "Select Model",
+            available_models,
+            index=default_model_index,
+            help=f"Available models for {provider}"
+        )
+        
+        temperature = st.slider(
+            "Temperature",
+            min_value=0.0,
+            max_value=1.0,
+            value=st.session_state.llm_temperature,
+            step=0.1,
+            help="Controls randomness: 0 = deterministic, 1 = creative"
+        )
+        
+        # Update session state
+        st.session_state.llm_provider = provider
+        st.session_state.llm_model = model
+        st.session_state.llm_temperature = temperature
+        
+        # Show validation status
+        is_valid, error_msg = validate_provider_config(provider)
+        if is_valid:
+            st.success(f"✅ {provider.upper()} configured")
+        else:
+            st.warning(f"⚠️ {error_msg}")
+    
+    st.divider()
+    
     st.header("👤 Brand / User Profile")
 
     with st.expander("Configure profile", expanded=True):
@@ -102,10 +157,19 @@ tabs = st.tabs(["Chat", "Content Generator"])
 # ---------- Chat Tab ----------
 with tabs[0]:
     st.subheader("Chat Assistant")
-    st.caption("Backed by Groq Llama 3.3. Your messages are ephemeral and stored only in this session.")
+    provider_display = st.session_state.llm_provider.upper()
+    st.caption(f"Backed by {provider_display} ({st.session_state.llm_model}). Your messages are ephemeral and stored only in this session.")
 
-    if ensure_api_key():
-        llm = get_llm()
+    if ensure_api_key(st.session_state.llm_provider):
+        try:
+            llm = get_cached_llm(
+                st.session_state.llm_provider,
+                st.session_state.llm_model,
+                st.session_state.llm_temperature
+            )
+        except Exception as e:
+            st.error(f"Error initializing LLM: {e}")
+            st.stop()
 
         # Initialize chat history
         if "chat_history" not in st.session_state:
@@ -163,17 +227,20 @@ with tabs[1]:
     if submitted:
         if not all([topic.strip(), audience.strip(), tone.strip(), platform.strip()]):
             st.warning("Please fill in all fields.")
-        elif not ensure_api_key():
+        elif not ensure_api_key(st.session_state.llm_provider):
             pass
         else:
-            with st.spinner("Generating content…"):
+            with st.spinner(f"Generating content with {st.session_state.llm_provider.upper()}…"):
                 try:
                     output = generate_content(
                         topic=topic,
                         platform=platform,
                         audience=audience,
                         tone=tone,
-                        user_profile=st.session_state.get("user_profile", {})
+                        user_profile=st.session_state.get("user_profile", {}),
+                        provider=st.session_state.llm_provider,
+                        model=st.session_state.llm_model,
+                        temperature=st.session_state.llm_temperature
                     )
                     st.markdown("---")
                     st.markdown(output)

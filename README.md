@@ -11,14 +11,15 @@ Este proyecto es una aplicación web que permite generar contenido de texto opti
 ### ✅ Implementado
 - ✅ Generación de contenido para múltiples plataformas (Blog, Twitter/X, Instagram, LinkedIn)
 - ✅ Personalización por audiencia y tono
+- ✅ **Perfil personalizado de empresa/persona** - Personaliza el contenido con información de tu marca
+- ✅ **Selector de múltiples LLMs** - Elige entre Groq, OpenAI y Ollama
 - ✅ Interfaz web interactiva con Streamlit
 - ✅ Chat conversacional con IA
 - ✅ Uso de LangChain framework
-- ✅ Integración con Groq (Llama 3.3 70B)
+- ✅ Integración con múltiples proveedores de LLM
 - ✅ Dockerización completa
 
 ### 🚧 En desarrollo
-- 🔄 Selección entre múltiples LLMs (Groq, OpenAI, Ollama)
 - 🔄 Generación de imágenes con IA
 - 🔄 Soporte multiidioma (ES, EN, FR, IT)
 - 🔄 RAG científico con arXiv
@@ -99,8 +100,21 @@ La aplicación estará disponible en `http://localhost:8501`
 
 ## 🎮 Uso
 
+### Configuración Inicial
+
+1. **Seleccionar LLM Provider** (Sidebar):
+   - Elige entre: Groq, OpenAI, o Ollama
+   - Selecciona el modelo específico
+   - Ajusta la temperatura (0.0 = determinista, 1.0 = creativo)
+
+2. **Configurar Perfil** (Sidebar - Opcional):
+   - Nombre de empresa/persona
+   - Sector/industria
+   - Tono de voz característico
+   - Valores/misión
+
 ### Pestaña "Chat"
-- Chat conversacional con el modelo de IA
+- Chat conversacional con el modelo de IA seleccionado
 - Respuestas en tiempo real
 - Historial de conversación en memoria
 
@@ -110,22 +124,39 @@ La aplicación estará disponible en `http://localhost:8501`
 3. **Audiencia**: Define tu audiencia objetivo
 4. **Tono**: Elige el tono del contenido (Informativo, Profesional, Amigable, etc.)
 5. Haz clic en **"Generate"** y espera el resultado
+6. El contenido generado reflejará tu perfil personalizado (si está configurado)
 
 ## 🔧 Configuración Avanzada
 
 ### Variables de Entorno Disponibles
 
 ```bash
-# Configuración de Groq (Requerido)
+# ======================================
+# GROQ API (Requerido para usar Groq)
+# ======================================
 GROQ_API_KEY=tu_api_key
 GROQ_MODEL=llama-3.1-8b-instant
 MODEL_TEMPERATURE=0.7
 
-# System Prompt personalizado (Opcional)
+# ======================================
+# OpenAI API (Opcional - para usar GPT)
+# ======================================
+# OPENAI_API_KEY=tu_openai_api_key
+
+# ======================================
+# Ollama (Opcional - para uso local)
+# ======================================
+# Instalar Ollama desde: https://ollama.ai/
+# OLLAMA_BASE_URL=http://localhost:11434
+
+# ======================================
+# System Prompt (Opcional)
+# ======================================
 SYSTEM_PROMPT=You are a helpful assistant
 
+# ======================================
 # APIs adicionales (Futuras implementaciones)
-# OPENAI_API_KEY=...
+# ======================================
 # LANGCHAIN_API_KEY=...
 # UNSPLASH_ACCESS_KEY=...
 ```
@@ -136,11 +167,14 @@ SYSTEM_PROMPT=You are a helpful assistant
 projectXI-LLM_G4/
 ├── app.py                    # Aplicación principal Streamlit
 ├── content_generator.py      # Lógica de generación de contenido
+├── llm_factory.py           # Factory pattern para múltiples LLMs
 ├── requirements.txt          # Dependencias Python
 ├── Dockerfile               # Configuración Docker
 ├── .dockerignore            # Archivos excluidos de Docker
 ├── .gitignore               # Archivos excluidos de Git
 ├── .env.example             # Template de variables de entorno
+├── PROJECT_FLOW.md          # Documentación del flujo del proyecto
+├── TEST_CASES.md            # Casos de prueba
 └── README.md                # Este archivo
 ```
 
@@ -156,6 +190,12 @@ projectXI-LLM_G4/
 - Asegúrate de haber creado el archivo `.env`
 - Verifica que la API key esté correctamente copiada sin espacios
 - Si usas Docker, verifica que el flag `--env-file .env` esté presente
+
+### Error: "OpenAI/Ollama is not available"
+- **Groq** está incluido por defecto y funciona sin instalación adicional
+- **OpenAI**: Instala con `pip install langchain-openai` (opcional)
+- **Ollama**: Instala con `pip install langchain-ollama` (opcional)
+- La aplicación funciona perfectamente solo con Groq
 
 ## 🤝 Contribuciones
 

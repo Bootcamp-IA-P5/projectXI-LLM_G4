@@ -25,10 +25,22 @@ Guía completa del flujo de funcionamiento del sistema de generación automátic
 │  │  - History   │  │  │  Audience, Tone           │  │  │
 │  │              │  │  └──────────────────────────┘  │  │  │
 │  └──────────────┘  │  ┌──────────────────────────┐  │  │
-│                    │  │  Sidebar: User Profile    │  │  │
+│                    │  │  Sidebar:                 │  │  │
+│                    │  │  - LLM Provider Selector  │  │  │
+│                    │  │  - User Profile           │  │  │
 │                    │  │  - Name, Industry, Tone   │  │  │
 │                    │  └──────────────────────────┘  │  │  │
 │                    └────────────────────────────────┘  │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│              llm_factory.py                             │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │  get_llm(provider, model, temperature)           │   │
+│  │  - Factory pattern para crear LLM instances       │   │
+│  │  - Soporta: Groq, OpenAI, Ollama                  │   │
+│  └──────────────────────────────────────────────────┘   │
 └───────────────────────────┬─────────────────────────────┘
                             │
                             ▼
@@ -38,6 +50,8 @@ Guía completa del flujo de funcionamiento del sistema de generación automátic
 │  │  generate_content()                               │   │
 │  │  - Recibe: topic, platform, audience, tone        │   │
 │  │  - Recibe: user_profile (opcional)               │   │
+│  │  - Recibe: provider, model, temperature          │   │
+│  │  - Usa llm_factory para crear LLM                │   │
 │  │  - Construye prompt dinámico                      │   │
 │  │  - Inyecta perfil si existe                       │   │
 │  └──────────────────────────────────────────────────┘   │
@@ -71,22 +85,28 @@ Guía completa del flujo de funcionamiento del sistema de generación automátic
 ```
 1. Usuario abre aplicación → http://localhost:8501
    │
-   ├─► Ve pestaña "Content Generator"
+   ├─► Ve sidebar con selector de LLM
+   ├─► Selecciona provider (Groq/OpenAI/Ollama)
+   ├─► Selecciona modelo específico
+   ├─► Ajusta temperatura (opcional)
    │
-2. Usuario completa formulario:
+2. Usuario va a pestaña "Content Generator"
+   │
+3. Usuario completa formulario:
    │
    ├─► Topic: "The benefits of AI in healthcare"
    ├─► Platform: "Blog Post"
    ├─► Audience: "Healthcare professionals"
    ├─► Tone: "Professional"
    │
-3. Usuario hace clic en "Generate"
+4. Usuario hace clic en "Generate"
    │
    ├─► Sistema valida campos
-   ├─► Sistema verifica API key
-   ├─► Sistema llama a generate_content()
+   ├─► Sistema verifica API key del provider seleccionado
+   ├─► Sistema llama a generate_content() con provider y modelo
+   ├─► llm_factory crea instancia del LLM correcto
    │
-4. Sistema muestra contenido generado
+5. Sistema muestra contenido generado
    │
    └─► Usuario puede copiar/usar el contenido
 ```
@@ -226,29 +246,40 @@ generate_content(
 **Responsabilidades:**
 - UI con Streamlit (tabs, forms, sidebar)
 - Gestión de estado (`st.session_state`)
+- Selector de LLM provider
 - Validación de inputs
 - Llamada a funciones de generación
 - Manejo de errores
 
 **Funciones clave:**
-- `get_llm()`: Crea/cachea instancia de LLM
-- `ensure_api_key()`: Valida API key
-- Sidebar: Gestión de perfil de usuario
+- `get_cached_llm()`: Crea/cachea instancia de LLM usando factory
+- `ensure_api_key()`: Valida API key según provider
+- Sidebar: Selector de LLM y gestión de perfil de usuario
 
-### 2. `content_generator.py` - Lógica de Generación
+### 2. `llm_factory.py` - Factory Pattern para LLMs
+
+**Responsabilidades:**
+- Crear instancias de LLM según provider
+- Validar configuración de providers
+- Listar modelos disponibles
+
+**Funciones clave:**
+- `get_llm(provider, model, temperature)`: Factory function
+- `get_available_models(provider)`: Lista modelos por provider
+- `validate_provider_config(provider)`: Valida configuración
+
+### 3. `content_generator.py` - Lógica de Generación
 
 **Responsabilidades:**
 - Construcción de prompts dinámicos
 - Integración con LangChain
 - Manejo de perfil de usuario
-- Invocación de LLM
+- Creación dinámica de LLM usando factory
 
 **Funciones clave:**
 - `generate_content()`: Función principal de generación
-
-**Variables globales:**
-- `llm`: Instancia de ChatGroq (actualmente)
-- `prompt_template`: Template base (ahora se construye dinámicamente)
+  - Parámetros: topic, platform, audience, tone, user_profile, provider, model, temperature
+  - Usa `llm_factory.get_llm()` para crear instancia de LLM
 
 ### 3. `st.session_state` - Estado de Sesión
 
@@ -334,7 +365,9 @@ UI Display
 |----------|------|----------------|-----|
 | `user_profile` | dict | `{"name": "", "industry": "", "tone": "", "values": ""}` | Perfil de empresa/persona |
 | `chat_history` | list | `[AIMessage("Hi!...")]` | Historial de chat |
-| `llm` | object | `@st.cache_resource` | Instancia de LLM (cached) |
+| `llm_provider` | str | `"groq"` | Provider seleccionado (groq/openai/ollama) |
+| `llm_model` | str | `"llama-3.1-8b-instant"` | Modelo seleccionado |
+| `llm_temperature` | float | `0.7` | Temperatura para generación |
 
 ### Estado Temporal
 
@@ -345,25 +378,26 @@ UI Display
 
 ## 🔐 Variables de Entorno
 
-### Requeridas
+### Requeridas (según provider usado)
 
 ```bash
+# Para Groq
 GROQ_API_KEY=tu_api_key_aqui
+
+# Para OpenAI (opcional)
+OPENAI_API_KEY=tu_openai_api_key
+
+# Para Ollama (opcional - local)
+# No requiere API key, solo instalar Ollama
+OLLAMA_BASE_URL=http://localhost:11434
 ```
 
 ### Opcionales
 
 ```bash
-GROQ_MODEL=llama-3.3-8b-versatile
+GROQ_MODEL=llama-3.1-8b-instant
 MODEL_TEMPERATURE=0.7
 SYSTEM_PROMPT=You are a helpful assistant
-```
-
-### Futuras (para múltiples LLMs)
-
-```bash
-OPENAI_API_KEY=...
-OLLAMA_BASE_URL=http://localhost:11434
 ```
 
 ---
@@ -445,7 +479,7 @@ OLLAMA_BASE_URL=http://localhost:11434
 
 ## 🔮 Próximas Mejoras (Roadmap)
 
-1. **Selector de LLMs**: Elegir entre Groq, OpenAI, Ollama
+1. ✅ **Selector de LLMs**: Implementado - Elegir entre Groq, OpenAI, Ollama
 2. **Persistencia**: Guardar perfil en archivo/BD
 3. **Generación de imágenes**: Integrar APIs de imágenes
 4. **Multiidioma**: Soporte ES, EN, FR, IT

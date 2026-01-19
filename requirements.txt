@@ -15,6 +15,7 @@ langsmith==0.5.0
 # LLM Providers
 groq==0.37.1
 openai==2.13.0
+# langchain-ollama==0.1.0  # Optional - uncomment if you want to use Ollama locally
 
 # Web Framework
 streamlit==1.51.0
