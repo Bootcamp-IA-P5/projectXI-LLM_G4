@@ -24,6 +24,7 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 # Import LLM factory and content generator
 from llm_factory import get_llm, get_available_models, validate_provider_config
 from content_generator import generate_content
+from image_generator import get_images_for_content, format_image_markdown
 
 
 # ---------- Setup ----------
@@ -249,7 +250,23 @@ with tabs[1]:
                         model=st.session_state.llm_model,
                         temperature=st.session_state.llm_temperature
                     )
+                    
                     st.markdown("---")
+                    st.markdown("### Generated Content")
                     st.markdown(output)
+                    
+                    # Fetch and display images
+                    if os.getenv("UNSPLASH_ACCESS_KEY"):
+                        with st.spinner("Fetching relevant images…"):
+                            images = get_images_for_content(output, num_images=1)
+                            if images:
+                                st.markdown("---")
+                                st.markdown("### Relevant Images")
+                                for img in images:
+                                    st.image(img["url"], caption=f"Photo by {img['photographer']} on Unsplash", use_container_width=True)
+                                    st.caption(f"*{img['description']}*")
+                    else:
+                        st.info("💡 Tip: Add UNSPLASH_ACCESS_KEY to .env to enable image generation")
+                    
                 except Exception as e:
                     st.error(f"Generation failed: {e}")

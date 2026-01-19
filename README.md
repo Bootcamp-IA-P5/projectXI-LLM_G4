@@ -13,6 +13,8 @@ Este proyecto es una aplicación web que permite generar contenido de texto opti
 - ✅ Personalización por audiencia y tono
 - ✅ **Perfil personalizado de empresa/persona** - Personaliza el contenido con información de tu marca
 - ✅ **Selector de múltiples LLMs** - Elige entre Groq, OpenAI y Ollama
+- ✅ **Soporte multiidioma** - Genera contenido en Español, Inglés, Francés e Italiano
+- ✅ **Generación de imágenes** - Integración con Unsplash API para imágenes relevantes
 - ✅ Interfaz web interactiva con Streamlit
 - ✅ Chat conversacional con IA
 - ✅ Uso de LangChain framework
@@ -155,10 +157,16 @@ MODEL_TEMPERATURE=0.7
 SYSTEM_PROMPT=You are a helpful assistant
 
 # ======================================
+# Image Generation (Optional)
+# ======================================
+# Unsplash API - Get free access key at: https://unsplash.com/developers
+# Free tier: 50 requests/hour
+# UNSPLASH_ACCESS_KEY=your_unsplash_access_key_here
+
+# ======================================
 # APIs adicionales (Futuras implementaciones)
 # ======================================
 # LANGCHAIN_API_KEY=...
-# UNSPLASH_ACCESS_KEY=...
 ```
 
 ## 📁 Estructura del Proyecto
@@ -168,6 +176,7 @@ projectXI-LLM_G4/
 ├── app.py                    # Aplicación principal Streamlit
 ├── content_generator.py      # Lógica de generación de contenido
 ├── llm_factory.py           # Factory pattern para múltiples LLMs
+├── image_generator.py       # Generación de imágenes con Unsplash API
 ├── requirements.txt          # Dependencias Python
 ├── Dockerfile               # Configuración Docker
 ├── .dockerignore            # Archivos excluidos de Docker
@@ -196,6 +205,12 @@ projectXI-LLM_G4/
 - **OpenAI**: Instala con `pip install langchain-openai` (opcional)
 - **Ollama**: Instala con `pip install langchain-ollama` (opcional)
 - La aplicación funciona perfectamente solo con Groq
+
+### Imágenes no aparecen
+- La generación de imágenes requiere una API key de Unsplash (opcional)
+- Obtén tu key gratuita en: https://unsplash.com/developers
+- Agrega `UNSPLASH_ACCESS_KEY=tu_key` al archivo `.env`
+- Sin la key, la aplicación funciona normalmente pero sin imágenes
 
 ## 🤝 Contribuciones
 
