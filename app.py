@@ -47,6 +47,52 @@ def ensure_api_key():
         return False
     return True
 
+# ---------- Sidebar: User Profile ----------
+if "user_profile" not in st.session_state:
+    st.session_state.user_profile = {
+        "name": "",
+        "industry": "",
+        "tone": "",
+        "values": ""
+    }
+
+with st.sidebar:
+    st.header("👤 Brand / User Profile")
+
+    with st.expander("Configure profile", expanded=True):
+        with st.form("user_profile_form"):
+            name = st.text_input(
+                "Company or person name",
+                value=st.session_state.user_profile.get("name", "")
+            )
+
+            industry = st.text_input(
+                "Industry / Sector",
+                value=st.session_state.user_profile.get("industry", "")
+            )
+
+            tone = st.text_area(
+                "Characteristic tone of voice",
+                placeholder="e.g. professional, friendly, bold, educational…",
+                value=st.session_state.user_profile.get("tone", "")
+            )
+
+            values = st.text_area(
+                "Values / Mission (optional)",
+                placeholder="e.g. innovation, transparency, social impact…",
+                value=st.session_state.user_profile.get("values", "")
+            )
+
+            save_profile = st.form_submit_button("Save profile")
+
+        if save_profile:
+            st.session_state.user_profile = {
+                "name": name,
+                "industry": industry,
+                "tone": tone,
+                "values": values
+            }
+            st.success("Profile saved ✔️")
 
 # ---------- UI ----------
 st.title("🧠 LLM Content Generator & Chat")
@@ -122,7 +168,13 @@ with tabs[1]:
         else:
             with st.spinner("Generating content…"):
                 try:
-                    output = generate_content(topic=topic, platform=platform, audience=audience, tone=tone)
+                    output = generate_content(generate_content(
+                    topic=topic,
+                    platform=platform,
+                    audience=audience,
+                    tone=tone,
+                    user_profile=st.session_state.get("user_profile", {})
+                    ))
                     st.markdown("---")
                     st.markdown(output)
                 except Exception as e:
