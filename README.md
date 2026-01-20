@@ -15,6 +15,7 @@ Este proyecto es una aplicación web que permite generar contenido de texto opti
 - ✅ **Selector de múltiples LLMs** - Elige entre Groq, OpenAI y Ollama
 - ✅ **Soporte multiidioma** - Genera contenido en Español, Inglés, Francés e Italiano
 - ✅ **Generación de imágenes** - Integración con Unsplash API para imágenes relevantes
+- ✅ **Noticias financieras en tiempo real** - Integración con MarketAux API para noticias de mercados
 - ✅ Interfaz web interactiva con Streamlit
 - ✅ Chat conversacional con IA
 - ✅ Uso de LangChain framework
@@ -25,13 +26,13 @@ Este proyecto es una aplicación web que permite generar contenido de texto opti
 - 🔄 Trazabilidad con LangSmith (configuración pendiente)
 - 🔄 RAG científico con arXiv
 - 🔄 Sistema multiagente
-- 🔄 Noticias financieras con APIs
 
 ## 🛠️ Tecnologías
 
 - **Python 3.10**
 - **LangChain** - Framework para aplicaciones con LLMs
 - **Groq API** - LLM backend (Llama 3.3 70B)
+- **MarketAux API** - Noticias financieras en tiempo real
 - **Streamlit** - Frontend web interactivo
 - **Docker** - Containerización
 - **python-dotenv** - Gestión de variables de entorno
@@ -119,6 +120,13 @@ La aplicación estará disponible en `http://localhost:8501`
 - Respuestas en tiempo real
 - Historial de conversación en memoria
 
+### Pestaña "Financial News"
+1. **Configurar API Key**: Añade tu API key de MarketAux al archivo `.env`
+2. **Filtros**: Selecciona símbolos bursátiles, países, industrias
+3. **Sentimiento**: Filtra noticias por sentimiento positivo/negativo
+4. **Obtener Noticias**: Haz clic en "Fetch News" para obtener últimas noticias
+5. **Análisis IA**: Genera resúmenes automáticos con el LLM configurado
+
 ### Pestaña "Content Generator"
 1. **Tema**: Describe el tema sobre el que quieres generar contenido
 2. **Plataforma**: Selecciona la plataforma objetivo (Blog, Twitter, Instagram, LinkedIn)
@@ -163,6 +171,13 @@ SYSTEM_PROMPT=You are a helpful assistant
 # UNSPLASH_ACCESS_KEY=your_unsplash_access_key_here
 
 # ======================================
+# MarketAux Financial News API (Optional)
+# ======================================
+# Get your free API key at: https://www.marketaux.com/register
+# Free tier: 50 requests/hour
+# MARKETAUX_API_KEY=your_marketaux_api_key_here
+
+# ======================================
 # LangSmith Tracing (Optional)
 # ======================================
 # Get your API key at: https://smith.langchain.com/
@@ -180,6 +195,7 @@ projectXI-LLM_G4/
 ├── content_generator.py      # Lógica de generación de contenido
 ├── llm_factory.py           # Factory pattern para múltiples LLMs
 ├── image_generator.py       # Generación de imágenes con Unsplash API
+├── financial_news.py        # 🆕 Módulo de noticias financieras
 ├── requirements.txt          # Dependencias Python
 ├── Dockerfile               # Configuración Docker
 ├── .dockerignore            # Archivos excluidos de Docker

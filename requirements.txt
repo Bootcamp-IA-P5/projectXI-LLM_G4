@@ -29,6 +29,9 @@ python-dotenv==1.1.1
 requests==2.32.5
 httpx==0.28.1
 
+# Financial News API
+# MarketAux API is accessed via requests, no additional package needed
+
 # Image APIs (Optional)
 # Unsplash API is accessed via requests, no additional package needed
 
