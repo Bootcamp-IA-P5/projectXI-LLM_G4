@@ -1,0 +1,47 @@
+# Core dependencies for LLM Content Generator
+# Python 3.10+ compatible
+
+# LangChain Framework
+langchain==1.2.0
+langchain-core==1.2.2
+langchain-groq==1.1.1
+langchain-openai==1.1.4
+angchain-huggingface-1.2.0
+langchain_community-0.4.1
+langgraph==1.0.5
+langgraph-checkpoint==3.0.1
+langgraph-prebuilt==1.0.5
+langgraph-sdk==0.3.0
+langsmith==0.5.0
+
+# CrewAI for multi-agent orchestration
+crewai==1.8.1
+crewai-tools==1.8.1
+
+# LLM Providers
+groq==0.37.1
+openai==2.13.0
+# langchain-ollama==0.1.0  # Optional - uncomment if you want to use Ollama locally
+
+# Web Framework
+streamlit==1.51.0
+
+# Environment and Configuration
+python-dotenv==1.1.1
+
+# HTTP Requests
+requests==2.32.5
+httpx==0.28.1
+
+# Image APIs (Optional)
+# Unsplash API is accessed via requests, no additional package needed
+
+# Data Processing
+pydantic==2.12.3
+pydantic_core==2.41.4
+pypdf==6.6.0
+transformers==4.57.6
+chromadb==1.4.1
+# Utilities
+typing_extensions==4.15.0
+numpy==1.26.4

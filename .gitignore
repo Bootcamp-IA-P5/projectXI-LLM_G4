@@ -1,14 +1,92 @@
-# Virtual environments (Never commit)
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 venv/
 env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Compiled Python files (auto-generated)
-__pycache__/
-*.pyc
-
-# OS system files (macOS/Windows)
-.DS_Store
-Thumbs.db
-
-# Environment variables and secrets (security)
+# Environment variables - NEVER commit these!
 .env
+.env.local
+.env.*.local
+*.key
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+chroma_db/*
+vectorstore/
+faiss_index/
+
+# Logs
+*.log
+logs/
+*.out
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Docker
+*.dockerignore
+
+# Temporary files
+*.bak
+*.tmp
+*.temp
+*.swp
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Media files (if generated)
+generated_images/
+temp_images/
+
+# Credentials and API keys
+credentials.json
+token.json
+secrets/
+
+README_req.md

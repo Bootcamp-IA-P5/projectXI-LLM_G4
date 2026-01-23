@@ -1,1 +1,239 @@
-# projectXI-LLM-G4
+# 🚀 Content Generator - Generador Automático de Contenido con IA
+
+Sistema de generación automática de contenido para múltiples plataformas utilizando inteligencia artificial generativa.
+
+## 📋 Descripción
+
+Este proyecto es una aplicación web que permite generar contenido de texto optimizado para diferentes plataformas (Blog, Twitter/X, Instagram, LinkedIn) utilizando modelos de lenguaje grande (LLMs) y técnicas de prompt engineering.
+
+## 🎯 Características
+
+### ✅ Implementado
+- ✅ Generación de contenido para múltiples plataformas (Blog, Twitter/X, Instagram, LinkedIn)
+- ✅ Personalización por audiencia y tono
+- ✅ **Perfil personalizado de empresa/persona** - Personaliza el contenido con información de tu marca
+- ✅ **Selector de múltiples LLMs** - Elige entre Groq, OpenAI y Ollama
+- ✅ **Soporte multiidioma** - Genera contenido en Español, Inglés, Francés e Italiano
+- ✅ **Generación de imágenes** - Integración con Unsplash API para imágenes relevantes
+- ✅ Interfaz web interactiva con Streamlit
+- ✅ Chat conversacional con IA
+- ✅ Uso de LangChain framework
+- ✅ Integración con múltiples proveedores de LLM
+- ✅ Dockerización completa
+
+### 🚧 En desarrollo
+- 🔄 Trazabilidad con LangSmith (configuración pendiente)
+- 🔄 RAG científico con arXiv
+- 🔄 Sistema multiagente
+- 🔄 Noticias financieras con APIs
+
+## 🛠️ Tecnologías
+
+- **Python 3.10**
+- **LangChain** - Framework para aplicaciones con LLMs
+- **Groq API** - LLM backend (Llama 3.3 70B)
+- **Streamlit** - Frontend web interactivo
+- **Docker** - Containerización
+- **python-dotenv** - Gestión de variables de entorno
+
+## 📦 Instalación
+
+### Opción 1: Ejecución Local
+
+1. **Clonar el repositorio**
+```bash
+git clone <url-del-repositorio>
+cd projectXI-LLM_G4
+```
+
+2. **Crear entorno virtual**
+```bash
+python -m venv venv
+source venv/bin/activate  # En Mac/Linux
+# o en Windows: venv\Scripts\activate
+```
+
+3. **Instalar dependencias**
+```bash
+pip install -r requirements.txt
+```
+
+4. **Configurar variables de entorno**
+```bash
+# Copiar el archivo de ejemplo
+cp .env.example .env
+
+# Editar .env y añadir tu API key de Groq
+nano .env  # o usa tu editor preferido
+```
+
+Añade tu API key de Groq (obtenerla gratis en https://console.groq.com/):
+```
+GROQ_API_KEY=tu_api_key_aqui
+```
+
+5. **Ejecutar la aplicación**
+```bash
+streamlit run app.py
+```
+
+La aplicación estará disponible en `http://localhost:8501`
+
+### Opción 2: Ejecución con Docker
+
+1. **Construir la imagen**
+```bash
+docker build -t content-generator .
+```
+
+2. **Crear archivo .env**
+```bash
+cp .env.example .env
+# Editar .env y añadir tu GROQ_API_KEY
+```
+
+3. **Ejecutar el contenedor**
+```bash
+docker run -p 8501:8501 --env-file .env content-generator
+```
+
+La aplicación estará disponible en `http://localhost:8501`
+
+## 🎮 Uso
+
+### Configuración Inicial
+
+1. **Seleccionar LLM Provider** (Sidebar):
+   - Elige entre: Groq, OpenAI, o Ollama
+   - Selecciona el modelo específico
+   - Ajusta la temperatura (0.0 = determinista, 1.0 = creativo)
+
+2. **Configurar Perfil** (Sidebar - Opcional):
+   - Nombre de empresa/persona
+   - Sector/industria
+   - Tono de voz característico
+   - Valores/misión
+
+### Pestaña "Chat"
+- Chat conversacional con el modelo de IA seleccionado
+- Respuestas en tiempo real
+- Historial de conversación en memoria
+
+### Pestaña "Content Generator"
+1. **Tema**: Describe el tema sobre el que quieres generar contenido
+2. **Plataforma**: Selecciona la plataforma objetivo (Blog, Twitter, Instagram, LinkedIn)
+3. **Audiencia**: Define tu audiencia objetivo
+4. **Tono**: Elige el tono del contenido (Informativo, Profesional, Amigable, etc.)
+5. Haz clic en **"Generate"** y espera el resultado
+6. El contenido generado reflejará tu perfil personalizado (si está configurado)
+
+## 🔧 Configuración Avanzada
+
+### Variables de Entorno Disponibles
+
+```bash
+# ======================================
+# GROQ API (Requerido para usar Groq)
+# ======================================
+GROQ_API_KEY=tu_api_key
+GROQ_MODEL=llama-3.1-8b-instant
+MODEL_TEMPERATURE=0.7
+
+# ======================================
+# OpenAI API (Opcional - para usar GPT)
+# ======================================
+# OPENAI_API_KEY=tu_openai_api_key
+
+# ======================================
+# Ollama (Opcional - para uso local)
+# ======================================
+# Instalar Ollama desde: https://ollama.ai/
+# OLLAMA_BASE_URL=http://localhost:11434
+
+# ======================================
+# System Prompt (Opcional)
+# ======================================
+SYSTEM_PROMPT=You are a helpful assistant
+
+# ======================================
+# Image Generation (Optional)
+# ======================================
+# Unsplash API - Get free access key at: https://unsplash.com/developers
+# Free tier: 50 requests/hour
+# UNSPLASH_ACCESS_KEY=your_unsplash_access_key_here
+
+# ======================================
+# LangSmith Tracing (Optional)
+# ======================================
+# Get your API key at: https://smith.langchain.com/
+# Free tier available for development
+# LANGCHAIN_TRACING_V2=true
+# LANGCHAIN_API_KEY=your_langsmith_api_key_here
+# LANGCHAIN_PROJECT=content-generator
+```
+
+## 📁 Estructura del Proyecto
+
+```
+projectXI-LLM_G4/
+├── app.py                    # Aplicación principal Streamlit
+├── content_generator.py      # Lógica de generación de contenido
+├── llm_factory.py           # Factory pattern para múltiples LLMs
+├── image_generator.py       # Generación de imágenes con Unsplash API
+├── requirements.txt          # Dependencias Python
+├── Dockerfile               # Configuración Docker
+├── .dockerignore            # Archivos excluidos de Docker
+├── .gitignore               # Archivos excluidos de Git
+├── .env.example             # Template de variables de entorno
+├── PROJECT_FLOW.md          # Documentación del flujo del proyecto
+├── TEST_CASES.md            # Casos de prueba
+└── README.md                # Este archivo
+```
+
+## 🐛 Solución de Problemas
+
+### Error: "Model error: 'ascii' codec can't encode character"
+✅ **Solucionado**: El código ahora configura automáticamente UTF-8 encoding.
+
+### Error: Docker build falla con "software-properties-common"
+✅ **Solucionado**: El Dockerfile ha sido actualizado para no requerir este paquete.
+
+### Error: "GROQ_API_KEY is missing"
+- Asegúrate de haber creado el archivo `.env`
+- Verifica que la API key esté correctamente copiada sin espacios
+- Si usas Docker, verifica que el flag `--env-file .env` esté presente
+
+### Error: "OpenAI/Ollama is not available"
+- **Groq** está incluido por defecto y funciona sin instalación adicional
+- **OpenAI**: Instala con `pip install langchain-openai` (opcional)
+- **Ollama**: Instala con `pip install langchain-ollama` (opcional)
+- La aplicación funciona perfectamente solo con Groq
+
+### Imágenes no aparecen
+- La generación de imágenes requiere una API key de Unsplash (opcional)
+- Obtén tu key gratuita en: https://unsplash.com/developers
+- Agrega `UNSPLASH_ACCESS_KEY=tu_key` al archivo `.env`
+- Sin la key, la aplicación funciona normalmente pero sin imágenes
+
+## 🤝 Contribuciones
+
+Este es un proyecto académico desarrollado para el Bootcamp de IA. Las contribuciones son bienvenidas.
+
+## 📄 Licencia
+
+Este proyecto es de uso educativo.
+
+## 👥 Equipo
+
+Grupo 4 - Bootcamp IA
+
+## 🔗 Enlaces Útiles
+
+- [Groq Console](https://console.groq.com/) - Obtener API key gratuita
+- [LangChain Docs](https://python.langchain.com/) - Documentación de LangChain
+- [Streamlit Docs](https://docs.streamlit.io/) - Documentación de Streamlit
+
+---
+
+⭐ **¿Te gusta el proyecto? ¡Dale una estrella en GitHub!**
+
