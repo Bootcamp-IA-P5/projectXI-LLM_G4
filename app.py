@@ -28,7 +28,7 @@ from image_generator import get_images_for_content, format_image_markdown
 
 
 # ---------- Setup ----------
-# Load environment variables with UTF-8 encoding
+# Load environment variables with UTF-8 encoding (may override dummy key if OPENAI_API_KEY exists in .env)
 load_dotenv(encoding='utf-8')
 st.set_page_config(page_title="LLM Content Generator & Chat", layout="centered")
 
@@ -152,7 +152,7 @@ with st.sidebar:
 
 # ---------- UI ----------
 st.title("🧠 LLM Content Generator & Chat")
-tabs = st.tabs(["Chat", "Content Generator", "RAG - Scientific Content"])
+tabs = st.tabs(["Chat", "Content Generator", "RAG - Scientific Content", "🤖 Multi-Agent System"])
 
 
 # ---------- Chat Tab ----------
@@ -392,3 +392,200 @@ with tabs[2]:
                         
                         except Exception as e:
                             st.error(f"Query failed: {e}")
+
+
+# ---------- Multi-Agent Tab ----------
+with tabs[3]:
+    st.subheader("🤖 Multi-Agent Content System")
+    st.caption("Specialized AI agents for each platform with automatic quality validation")
+    
+    # Main input columns
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        platform = st.selectbox(
+            "Platform",
+            ["📝 Blog", "💼 LinkedIn", "🐦 Twitter/X", "📸 Instagram"],
+            help="Select the target platform for your content"
+        )
+        topic = st.text_input(
+            "Topic",
+            placeholder="e.g., AI in healthcare",
+            help="Main topic for the content"
+        )
+        audience = st.text_input(
+            "Target Audience",
+            placeholder="e.g., Healthcare professionals",
+            help="Who is the content for?"
+        )
+    
+    with col2:
+        tone = st.selectbox(
+            "Tone",
+            ["Professional", "Friendly", "Bold"],
+            help="Desired tone for the content"
+        )
+        language = st.selectbox(
+            "Language",
+            ["English", "Spanish", "French", "Italian"],
+            help="Output language"
+        )
+        include_images = st.checkbox(
+            "Include images",
+            value=True,
+            help="Generate relevant images with the content"
+        )
+    
+    # Advanced options
+    with st.expander("⚙️ Advanced Options"):
+        show_agent_process = st.checkbox(
+            "Show agent workflow",
+            value=False,
+            help="Display the internal agent communication process"
+        )
+        custom_instructions = st.text_area(
+            "Additional Instructions (optional)",
+            placeholder="e.g., Focus on practical examples, include statistics...",
+            help="Extra guidance for the agents"
+        )
+    
+    # Generate button
+    if st.button("🚀 Generate with AI Agents", type="primary"):
+        if not topic.strip():
+            st.warning("⚠️ Please enter a topic")
+        elif st.session_state.llm_provider == "openai":
+            st.error("❌ Multi-Agent System only supports Groq and Ollama providers. Please select Groq or Ollama in the sidebar.")
+        elif not ensure_api_key(st.session_state.llm_provider):
+            pass
+        else:
+            try:
+                # Validate Groq/Ollama provider for multi-agent
+                if st.session_state.llm_provider not in ["groq", "ollama"]:
+                    st.error("❌ Multi-Agent System requires Groq or Ollama provider")
+                    st.stop()
+                
+                # Import ContentCrew
+                from agents import ContentCrew
+                
+                # Show process if enabled
+                if show_agent_process:
+                    with st.status("🤖 Multi-Agent System Working...", expanded=True) as status:
+                        st.write("🎬 Initializing agent crew...")
+                        
+                        # Create crew
+                        crew = ContentCrew(
+                            provider=st.session_state.llm_provider,
+                            model=st.session_state.llm_model
+                        )
+                        
+                        platform_clean = platform.replace("📝 ", "").replace("💼 ", "").replace("🐦 ", "").replace("📸 ", "")
+                        st.write(f"✅ Routing to: **{platform_clean} Agent**")
+                        st.write("📝 Agent generating content...")
+                        st.write("🔍 Revisor validating content...")
+                        
+                        # Generate content
+                        result = crew.generate_content(
+                            platform=platform,
+                            topic=topic,
+                            audience=audience,
+                            tone=tone.lower(),
+                            language=language,
+                            user_profile=st.session_state.get("user_profile", {}),
+                            include_images=include_images
+                        )
+                        
+                        if result["validation"]["approved"]:
+                            st.write("✅ Content approved by quality control!")
+                            status.update(label="✅ Complete!", state="complete")
+                        else:
+                            st.write("⚠️ Content needs revision")
+                            status.update(label="⚠️ Completed with warnings", state="complete")
+                else:
+                    with st.spinner("🤖 Generating content with specialized agents..."):
+                        from agents import ContentCrew
+                        
+                        crew = ContentCrew(
+                            provider=st.session_state.llm_provider,
+                            model=st.session_state.llm_model
+                        )
+                        
+                        result = crew.generate_content(
+                            platform=platform,
+                            topic=topic,
+                            audience=audience,
+                            tone=tone.lower(),
+                            language=language,
+                            user_profile=st.session_state.get("user_profile", {}),
+                            include_images=include_images
+                        )
+                
+                # Display results
+                st.divider()
+                st.subheader("📄 Generated Content")
+                
+                # Metadata cards
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("Platform", result["platform"])
+                with col2:
+                    st.metric("Agent", result["agent_used"].split()[0])
+                with col3:
+                    st.metric("Words", result["metadata"]["word_count"])
+                with col4:
+                    if result["validation"]["approved"]:
+                        st.metric("Status", "✅ Approved")
+                    elif result["validation"].get("revisor_approved", False):
+                        st.metric("Status", "⚠️ Guardrails")
+                    else:
+                        st.metric("Status", "⚠️ Review")
+                
+                # Content display
+                st.markdown("---")
+                st.markdown(result["content"])
+                
+                # Validation details
+                if not result["validation"]["approved"] or result["validation"]["guardrails_errors"]:
+                    with st.expander("🔍 Validation Details"):
+                        st.write("**Review Feedback:**")
+                        st.info(result["validation"]["review_feedback"])
+                        
+                        if result["validation"]["guardrails_errors"]:
+                            st.write("**Guardrails Issues:**")
+                            for error in result["validation"]["guardrails_errors"]:
+                                st.warning(f"⚠️ {error}")
+                        
+                        st.write("**Tone Check:**")
+                        st.text(result["validation"]["tone_check"])
+                
+                # Images section (if enabled)
+                if include_images:
+                    st.divider()
+                    st.subheader("🖼️ Suggested Images")
+                    st.info("💡 Use the Content Generator tab to generate actual images")
+                
+                # Action buttons
+                st.divider()
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.download_button(
+                        "📥 Download Content",
+                        result["content"],
+                        file_name=f"{result['platform'].lower()}_content.txt",
+                        mime="text/plain"
+                    )
+                with col2:
+                    if st.button("🔄 Regenerate"):
+                        st.rerun()
+                with col3:
+                    if st.button("📋 Copy to Clipboard"):
+                        st.code(result["content"], language=None)
+                
+            except ImportError as e:
+                st.error(f"❌ Import Error: {str(e)}")
+                st.error("If CrewAI is not installed, run: `pip install crewai crewai-tools`")
+                with st.expander("🐛 Full Error Details"):
+                    st.exception(e)
+            except Exception as e:
+                st.error(f"❌ Error generating content: {e}")
+                with st.expander("🐛 Debug Information"):
+                    st.exception(e)
