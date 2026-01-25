@@ -5,9 +5,9 @@
 langchain==1.2.0
 langchain-core==1.2.2
 langchain-groq==1.1.1
-langchain-openai==1.1.4
-angchain-huggingface-1.2.0
-langchain_community-0.4.1
+langchain-openai>=1.1.0
+langchain-huggingface>=0.0.1
+langchain-community==0.4.1
 langgraph==1.0.5
 langgraph-checkpoint==3.0.1
 langgraph-prebuilt==1.0.5
@@ -20,7 +20,7 @@ crewai-tools==1.8.1
 
 # LLM Providers
 groq==0.37.1
-openai==2.13.0
+openai~=1.83.0
 # langchain-ollama==0.1.0  # Optional - uncomment if you want to use Ollama locally
 
 # Web Framework
@@ -37,11 +37,11 @@ httpx==0.28.1
 # Unsplash API is accessed via requests, no additional package needed
 
 # Data Processing
-pydantic==2.12.3
-pydantic_core==2.41.4
+pydantic~=2.11.9
+pydantic_core>=2.20.0
 pypdf==6.6.0
-transformers==4.57.6
-chromadb==1.4.1
+transformers>=4.40.0,<5.0.0
+chromadb~=1.1.0
 # Utilities
 typing_extensions==4.15.0
 numpy==1.26.4
