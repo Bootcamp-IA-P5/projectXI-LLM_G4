@@ -537,38 +537,7 @@ def format_image_markdown(image_data: dict) -> str:
 
 ---
 
-## ✨ Características Implementadas
 
-### ✅ Nivel Esencial
-- ✅ Generación de contenido para múltiples plataformas
-- ✅ Interfaz web interactiva con Streamlit
-- ✅ Integración con LLMs mediante LangChain
-- ✅ Prompt engineering avanzado
-- ✅ Repositorio Git con ramas organizadas
-- ✅ Documentación completa
-
-### ✅ Nivel Medio
-- ✅ Dockerización completa
-- ✅ Selector de múltiples LLMs (Groq, OpenAI, Ollama)
-- ✅ Perfil personalizado de empresa/persona
-- ✅ Generación de imágenes con Unsplash API
-- ✅ Integración de imágenes en contenido
-
-### ✅ Nivel Avanzado
-- ✅ Trazabilidad con LangSmith (configurable)
-- ✅ Soporte multiidioma (Español, Inglés, Francés, Italiano)
-- ✅ Sistema RAG científico con arXiv/PDFs
-- ✅ Base de datos vectorial (Chroma)
-
-### ✅ Nivel Experto
-- ✅ Sistema multiagente con CrewAI
-- ✅ Guardarraíles para validación de contenido
-- ✅ Arquitectura modular y extensible
-
-### 🚧 En Desarrollo
-- 🔄 Noticias financieras con APIs
-- 🔄 Graph RAG (grafos de conocimiento)
-- 🔄 Mejoras en guardarraíles
 
 ---
 
@@ -699,6 +668,13 @@ SYSTEM_PROMPT=You are a helpful assistant
 # Image Generation (Opcional)
 # ======================================
 UNSPLASH_ACCESS_KEY=your_unsplash_access_key_here
+
+# ======================================
+# MarketAux Financial News API (Opcional)
+# ======================================
+# Get your free API key at: https://www.marketaux.com/register
+# Free tier: 50 requests/hour
+# MARKETAUX_API_KEY=your_marketaux_api_key_here
 
 # ======================================
 # LangSmith Tracing (Opcional)

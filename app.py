@@ -25,6 +25,7 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from llm_factory import get_llm, get_available_models, validate_provider_config
 from content_generator import generate_content
 from image_generator import get_images_for_content, format_image_markdown
+from financial_news import render_financial_news_tab
 
 
 # ---------- Setup ----------
@@ -32,6 +33,12 @@ from image_generator import get_images_for_content, format_image_markdown
 load_dotenv(encoding='utf-8')
 st.set_page_config(page_title="LLM Content Generator & Chat", layout="centered")
 
+
+# Initialize session state for financial news
+if "news_fetched" not in st.session_state:
+    st.session_state.news_fetched = False
+if "news_data" not in st.session_state:
+    st.session_state.news_data = {"data": [], "meta": {"found": 0, "returned": 0}}
 
 # Initialize LLM provider selection in session state
 if "llm_provider" not in st.session_state:
@@ -74,7 +81,8 @@ with st.sidebar:
             "Select LLM Provider",
             ["groq", "openai", "ollama"],
             index=0 if st.session_state.llm_provider == "groq" else (1 if st.session_state.llm_provider == "openai" else 2),
-            help="Choose the LLM provider for content generation"
+            help="Choose the LLM provider for content generation",
+            key="sidebar_provider"
         )
         
         # Get available models for selected provider
@@ -87,7 +95,8 @@ with st.sidebar:
             "Select Model",
             available_models,
             index=default_model_index,
-            help=f"Available models for {provider}"
+            help=f"Available models for {provider}",
+            key="sidebar_model"
         )
         
         temperature = st.slider(
@@ -96,7 +105,8 @@ with st.sidebar:
             max_value=1.0,
             value=st.session_state.llm_temperature,
             step=0.1,
-            help="Controls randomness: 0 = deterministic, 1 = creative"
+            help="Controls randomness: 0 = deterministic, 1 = creative",
+            key="sidebar_temperature"
         )
         
         # Update session state
@@ -119,27 +129,31 @@ with st.sidebar:
         with st.form("user_profile_form"):
             name = st.text_input(
                 "Company or person name",
-                value=st.session_state.user_profile.get("name", "")
+                value=st.session_state.user_profile.get("name", ""),
+                key="profile_name"
             )
 
             industry = st.text_input(
                 "Industry / Sector",
-                value=st.session_state.user_profile.get("industry", "")
+                value=st.session_state.user_profile.get("industry", ""),
+                key="profile_industry"
             )
 
             tone = st.text_area(
                 "Characteristic tone of voice",
                 placeholder="e.g. professional, friendly, bold, educational…",
-                value=st.session_state.user_profile.get("tone", "")
+                value=st.session_state.user_profile.get("tone", ""),
+                key="profile_tone"
             )
 
             values = st.text_area(
                 "Values / Mission (optional)",
                 placeholder="e.g. innovation, transparency, social impact…",
-                value=st.session_state.user_profile.get("values", "")
+                value=st.session_state.user_profile.get("values", ""),
+                key="profile_values"
             )
 
-            save_profile = st.form_submit_button("Save profile")
+            save_profile = st.form_submit_button("Save profile", key="save_profile_button")
 
         if save_profile:
             st.session_state.user_profile = {
@@ -152,7 +166,7 @@ with st.sidebar:
 
 # ---------- UI ----------
 st.title("🧠 LLM Content Generator & Chat")
-tabs = st.tabs(["Chat", "Content Generator", "RAG - Scientific Content", "🤖 Multi-Agent System"])
+tabs = st.tabs(["Chat", "Content Generator", "RAG - Scientific Content", "🤖 Multi-Agent System", "📈 Financial News"])
 
 
 # ---------- Chat Tab ----------
@@ -178,6 +192,7 @@ with tabs[0]:
                 AIMessage(content="Hi! I'm your AI assistant. How can I help today?")
             ]
 
+        
         # Render history
         for msg in st.session_state.chat_history:
             role = "assistant" if isinstance(msg, AIMessage) else "user"
@@ -215,21 +230,23 @@ with tabs[1]:
     st.caption("Fill in the fields and generate ready-to-publish content.")
 
     with st.form("content_form"):
-        topic = st.text_input("Topic", placeholder="e.g., The benefits of virtual reality for education")
+        topic = st.text_input("Topic", placeholder="e.g., The benefits of virtual reality for education", key="content_topic")
         platform = st.selectbox(
             "Platform",
             ["Blog Post", "Twitter/X", "Instagram Caption", "LinkedIn Post"],
             index=0,
+            key="content_platform"
         )
-        audience = st.text_input("Audience", placeholder="e.g., School Administrators and Educators")
-        tone = st.selectbox("Tone", ["Informative", "Professional", "Friendly", "Playful", "Persuasive"], index=0)
+        audience = st.text_input("Audience", placeholder="e.g., School Administrators and Educators", key="content_audience")
+        tone = st.selectbox("Tone", ["Informative", "Professional", "Friendly", "Playful", "Persuasive"], index=0, key="content_tone")
         language = st.selectbox(
             "Language",
             ["Spanish", "English", "French", "Italian"],
             index=0,
-            help="Select the language for content generation"
+            help="Select the language for content generation",
+            key="content_language"
         )
-        submitted = st.form_submit_button("Generate")
+        submitted = st.form_submit_button("Generate", key="content_generate_button")
 
     if submitted:
         if not all([topic.strip(), audience.strip(), tone.strip(), platform.strip()]):
@@ -300,11 +317,11 @@ with tabs[2]:
             
             col1, col2 = st.columns(2)
             with col1:
-                chunk_size = st.number_input("Chunk size", min_value=100, max_value=4000, value=1000, step=100)
+                chunk_size = st.number_input("Chunk size", min_value=100, max_value=4000, value=1000, step=100, key="rag_chunk_size")
             with col2:
-                chunk_overlap = st.number_input("Chunk overlap", min_value=0, max_value=500, value=200, step=50)
+                chunk_overlap = st.number_input("Chunk overlap", min_value=0, max_value=500, value=200, step=50, key="rag_chunk_overlap")
             
-            if st.button("🔄 Index Documents", type="primary"):
+            if st.button("🔄 Index Documents", type="primary", key="rag_index_button"):
                 with st.spinner("Loading and indexing documents..."):
                     try:
                         vectorstore = ingest_to_vectorstore(
@@ -323,7 +340,7 @@ with tabs[2]:
                         st.error(f"Indexing failed: {e}")
             
             # Option to load existing vectorstore
-            if st.button("📂 Load Existing Index"):
+            if st.button("📂 Load Existing Index", key="rag_load_button"):
                 try:
                     vectorstore = load_vectorstore(
                         persist_directory="chroma_db",
@@ -346,16 +363,17 @@ with tabs[2]:
             query = st.text_area(
                 "Your question",
                 placeholder="e.g., What are the main impacts of AI on the economy?",
-                height=100
+                height=100,
+                key="rag_query"
             )
             
             col1, col2 = st.columns(2)
             with col1:
-                num_sources = st.slider("Number of sources to retrieve", min_value=1, max_value=10, value=4)
+                num_sources = st.slider("Number of sources to retrieve", min_value=1, max_value=10, value=4, key="rag_num_sources")
             with col2:
-                use_llm = st.checkbox("Generate synthesized answer", value=True)
+                use_llm = st.checkbox("Generate synthesized answer", value=True, key="rag_use_llm")
             
-            if st.button("🚀 Search & Generate", type="primary"):
+            if st.button("🚀 Search & Generate", type="primary", key="rag_search_button"):
                 if not query.strip():
                     st.warning("Please enter a question.")
                 else:
@@ -392,7 +410,6 @@ with tabs[2]:
                         
                         except Exception as e:
                             st.error(f"Query failed: {e}")
-
 
 # ---------- Multi-Agent Tab ----------
 with tabs[3]:
@@ -589,3 +606,7 @@ with tabs[3]:
                 st.error(f"❌ Error generating content: {e}")
                 with st.expander("🐛 Debug Information"):
                     st.exception(e)
+
+# ---------- Financial News Tab ----------
+with tabs[4]:
+    render_financial_news_tab()
